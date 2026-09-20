@@ -11,7 +11,7 @@ import { ArrowLeft, Loader2, Trash, PlusCircle, UploadCloud, Smartphone } from '
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { addDoc, collection, serverTimestamp, onSnapshot, query, DocumentData } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, onSnapshot, query, DocumentData, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Product, ProductVariant } from '@/types';
 import { Textarea } from '@/components/ui/textarea';
@@ -153,11 +153,20 @@ export default function NewProductPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!name || !slug || !categoryId || !thumbnail || variants.some(v => !v.storage || v.price <= 0)) {
+    const missingFields: string[] = [];
+    if (!name.trim()) missingFields.push('le nom du produit');
+    if (!slug.trim()) missingFields.push('le slug');
+    if (!categoryId) missingFields.push('la catégorie');
+    if (!thumbnail) missingFields.push("l'image");
+    if (variants.some(v => !v.storage || v.price <= 0)) {
+        missingFields.push('une variante avec un stockage et un prix supérieur à 0');
+    }
+
+    if (missingFields.length > 0) {
         toast({
             variant: 'destructive',
             title: "Erreur de validation",
-            description: "Veuillez remplir tous les champs obligatoires, y compris l'image et au moins une variante valide.",
+            description: `Veuillez compléter : ${missingFields.join(', ')}.`,
         });
         setIsSubmitting(false);
         return;
@@ -174,15 +183,24 @@ export default function NewProductPage() {
         keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
         variants,
         hasIMEI,
-        customBadge: customBadge !== 'none' ? customBadge : undefined,
         isFeatured: Boolean(isFeatured),
         isFlashSale: Boolean(isFlashSale),
-        flashSalePrice: isFlashSale && Number(flashSalePrice) > 0 ? Number(flashSalePrice) : undefined,
-        flashSaleEndDate: isFlashSale && flashSaleEndDate ? new Date(flashSaleEndDate) : undefined,
         createdAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, 'products'), productData);
+      if (customBadge !== 'none') {
+        productData.customBadge = customBadge;
+      }
+      if (isFlashSale && Number(flashSalePrice) > 0) {
+        productData.flashSalePrice = Number(flashSalePrice);
+      }
+      if (isFlashSale && flashSaleEndDate) {
+        productData.flashSaleEndDate = new Date(flashSaleEndDate);
+      }
+
+      const productRef = doc(collection(db, 'products'));
+      const batch = writeBatch(db);
+      batch.set(productRef, productData);
 
       // Si un numéro IMEI a été saisi, créer directement l'exemplaire dans l'inventaire
       if (hasIMEI && imeiNumber.trim()) {
@@ -190,8 +208,9 @@ export default function NewProductPage() {
         const catalogP = Number(imeiOriginalPrice) || Number(selectedVar?.price) || 0;
         const finalP = hasImeiCustomPrice && Number(imeiUnitPrice) > 0 ? Number(imeiUnitPrice) : catalogP;
 
-        await addDoc(collection(db, 'inventory'), {
-          productId: docRef.id,
+        const inventoryRef = doc(collection(db, 'inventory'));
+        batch.set(inventoryRef, {
+          productId: productRef.id,
           productName: name,
           imei: imeiNumber.trim(),
           storage: imeiStorage || selectedVar?.storage || '128GB',
@@ -207,6 +226,7 @@ export default function NewProductPage() {
         });
       }
 
+      await batch.commit();
       invalidateCatalogCache();
 
       toast({
@@ -219,7 +239,9 @@ export default function NewProductPage() {
       toast({
         variant: 'destructive',
         title: "Erreur",
-        description: "Une erreur est survenue lors de la création du produit.",
+        description: error instanceof Error
+          ? `Création impossible : ${error.message}`
+          : "Une erreur est survenue lors de la création du produit.",
       });
     } finally {
       setIsSubmitting(false);
