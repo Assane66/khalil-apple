@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { normalizePhoneNumber } from '@/lib/phone-utils';
+import { getOptimizedImageUrl } from '@/lib/image-optimizer';
 
 export function WhatsAppFAB() {
   const [whatsappLink, setWhatsappLink] = useState('https://wa.me/221781395893');
@@ -26,7 +27,7 @@ export function WhatsAppFAB() {
   return (
     <Link href={whatsappLink} target="_blank" rel="noopener noreferrer" className="fixed bottom-5 right-5 z-50 h-16 w-16 transition-transform hover:scale-110">
       <Image
-        src={iconUrl}
+        src={getOptimizedImageUrl(iconUrl, 80)}
         alt="Contactez-nous sur WhatsApp"
         width={64}
         height={64}

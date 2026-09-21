@@ -7,6 +7,7 @@ import { doc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { splitPhoneNumbers } from "@/lib/phone-utils";
+import { getOptimizedImageUrl } from "@/lib/image-optimizer";
 
 interface SettingsData {
   shopName?: string;
@@ -59,7 +60,7 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center space-x-3 group">
               <Image
-                src="https://res.cloudinary.com/dm6yuokre/image/upload/v1752163215/IMG-20250710-WA0000-removebg-preview_uunwq2.png"
+                src={getOptimizedImageUrl("https://res.cloudinary.com/dm6yuokre/image/upload/v1752163215/IMG-20250710-WA0000-removebg-preview_uunwq2.png", 64)}
                 alt="Khalil Apple Logo"
                 width={32}
                 height={32}

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, User, LogOut } from "lucide-react";
 import { AdminSidebar } from "./admin-sidebar";
 import { useAuth } from "@/context/AuthContext";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase-auth";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { Toaster } from "@/components/ui/toaster"
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
@@ -6,6 +7,9 @@ import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { WhatsAppFAB } from '@/components/whatsapp-fab';
 import { ThemeProvider } from '@/components/theme-provider';
+
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair' });
 
 export const metadata: Metadata = {
   title: 'Khalil Apple',
@@ -25,11 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
-      <body className="font-body antialiased">
+      <body className={`${inter.variable} ${playfair.variable} font-body antialiased`}>
         <ThemeProvider
             attribute="class"
             defaultTheme="system"

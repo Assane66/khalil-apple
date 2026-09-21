@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { normalizeDigits } from "@/lib/phone-utils";
+import { getOptimizedImageUrl } from "@/lib/image-optimizer";
 
 export function Header() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -43,7 +44,7 @@ export function Header() {
         <div className="mr-auto flex items-center">
           <Link href="/" className="flex items-center space-x-3 group">
             <Image
-              src="https://res.cloudinary.com/dm6yuokre/image/upload/v1752163215/IMG-20250710-WA0000-removebg-preview_uunwq2.png"
+              src={getOptimizedImageUrl("https://res.cloudinary.com/dm6yuokre/image/upload/v1752163215/IMG-20250710-WA0000-removebg-preview_uunwq2.png", 64)}
               alt="Khalil Apple Logo"
               width={32}
               height={32}

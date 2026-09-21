@@ -1,10 +1,7 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, Firestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getPerformance, FirebasePerformance } from "firebase/performance";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCSEIftELB1fPvQ6wVogoUSlKIwWy-bkgA",
@@ -17,12 +14,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-// Initialize Auth and persistence safely for SSR
-const auth = getAuth(app);
-if (typeof window !== 'undefined') {
-  setPersistence(auth, browserLocalPersistence);
-}
-
 let db: Firestore;
 try {
   if (typeof window !== 'undefined') {
@@ -39,15 +30,4 @@ try {
 
 const storage = getStorage(app);
 
-// Initialize Analytics only on the client-side
-let performance: FirebasePerformance | undefined;
-if (typeof window !== 'undefined') {
-  getAnalytics(app);
-  try {
-    performance = getPerformance(app);
-  } catch (error) {
-    console.error('Firebase Performance Monitoring unavailable:', error);
-  }
-}
-
-export { app, auth, db, storage, performance };
+export { app, db, storage };
