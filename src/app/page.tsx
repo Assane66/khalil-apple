@@ -11,9 +11,8 @@ import { collection, getDocs, query, where, DocumentData, orderBy, Timestamp, do
 import type { Product, FeaturedSlots, HeroConfig } from '@/types';
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 
-import dynamic from 'next/dynamic';
 import { MagneticButton } from '@/components/ui/MagneticButton';
-const IPhone3DViewer = dynamic(() => import('@/components/3d/IPhone3DViewer').then(mod => mod.IPhone3DViewer), { ssr: false, loading: () => <div className="w-full h-full min-h-[400px] flex items-center justify-center"><div className="animate-pulse bg-zinc-900/50 rounded-full w-64 h-64 border border-white/5" /></div> });
+import { HeroMedia } from '@/components/home/HeroMedia';
 import { BentoGridSection } from '@/components/home/BentoGridSection';
 import { MarqueeBanner } from '@/components/home/MarqueeBanner';
 import { FlipClockTimer } from '@/components/home/FlipClockTimer';
@@ -413,11 +412,11 @@ export default function Home() {
 
           {/* Right 3D Interactive iPhone Model or High-Res Image */}
           <div className="lg:col-span-5 relative flex items-center justify-center">
-            <IPhone3DViewer
+            <HeroMedia
               onBuyClick={handleHeroCheckout}
               modelUrl={heroConfig?.modelUrl}
               mediaType={heroConfig?.mediaType}
-              imageUrl={heroConfig?.imageUrl}
+              imageUrl={heroConfig?.imageUrl || heroLinkedProduct?.thumbnail}
               title={heroTitle}
             />
           </div>

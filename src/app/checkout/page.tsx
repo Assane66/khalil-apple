@@ -43,20 +43,16 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deliveryFee, setDeliveryFee] = useState(5000);
   const [whatsappNumber, setWhatsappNumber] = useState('221781395893');
   const [settingsError, setSettingsError] = useState(false);
 
-  // Charger les paramètres généraux de la boutique (frais de livraison & téléphone WhatsApp)
+  // Charger le numéro WhatsApp de la boutique
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const settingsSnap = await getDoc(doc(db, 'settings', 'general'));
         if (settingsSnap.exists()) {
           const data = settingsSnap.data();
-          if (typeof data.deliveryFee === 'number') {
-            setDeliveryFee(data.deliveryFee);
-          }
           if (data.whatsappNumber || data.contactPhone) {
             setWhatsappNumber(String(data.whatsappNumber || String(data.contactPhone).split('/')[0]).replace(/\D/g, ''));
           }
@@ -80,7 +76,7 @@ export default function CheckoutPage() {
   });
 
   const deliveryMethod = form.watch('deliveryMethod');
-  const deliveryCost = deliveryMethod === 'delivery' ? deliveryFee : 0;
+  const deliveryCost = 0;
   const finalTotal = cartTotal + deliveryCost;
 
   useEffect(() => {
@@ -98,14 +94,14 @@ export default function CheckoutPage() {
       toast({
         variant: 'destructive',
         title: 'Paramètres indisponibles',
-        description: 'Impossible de vérifier les frais et le contact WhatsApp. Veuillez actualiser la page.',
+        description: 'Impossible de vérifier le contact WhatsApp. Veuillez actualiser la page.',
       });
       return;
     }
     setIsSubmitting(true);
     try {
       const deliveryLabel = values.deliveryMethod === 'delivery'
-        ? `Livraison à domicile (+${deliveryFee.toLocaleString('fr-FR')} CFA)`
+        ? 'Livraison à domicile (frais à confirmer)'
         : 'Retrait en boutique (Gratuit)';
 
       const plainItems = cart.map(item => ({
@@ -146,7 +142,7 @@ export default function CheckoutPage() {
         ? `\n• Adresse de livraison : ${values.customerAddress}`
         : '\n• Mode : Retrait en magasin (Gratuit)';
 
-      const message = `Bonjour Khalil Apple ! Je viens de passer une commande :\n\n${itemsListText}\n\n• Sous-total : ${cartTotal.toLocaleString('fr-FR')} CFA\n• Livraison : ${deliveryLabel}\n• Total à payer : ${finalTotal.toLocaleString('fr-FR')} CFA\n\n• Client : ${values.customerName}\n• Téléphone : ${values.customerPhone}${adresseInfo}`;
+      const message = `Bonjour Khalil Apple ! Je viens de passer une commande :\n\n${itemsListText}\n\n• Sous-total : ${cartTotal.toLocaleString('fr-FR')} CFA\n• Livraison : ${deliveryLabel}\n• Total produit (hors livraison) : ${finalTotal.toLocaleString('fr-FR')} CFA\n\n• Client : ${values.customerName}\n• Téléphone : ${values.customerPhone}${adresseInfo}`;
       const targetNumber = whatsappNumber.replace(/\+/g, '');
       const whatsappUrl = `https://wa.me/${targetNumber}?text=${encodeURIComponent(message)}`;
 
@@ -249,7 +245,7 @@ export default function CheckoutPage() {
                                                     <Truck className="h-6 w-6 text-amber-400" />
                                                     <div className="flex-1">
                                                         <p className="font-semibold">Livraison à domicile</p>
-                                                        <p className="text-sm text-muted-foreground">Frais de {deliveryFee.toLocaleString('fr-FR')} CFA</p>
+                                                        <p className="text-sm text-muted-foreground">Frais à confirmer avec le client</p>
                                                     </div>
                                                 </Label>
                                             </FormControl>

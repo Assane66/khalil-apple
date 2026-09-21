@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Phone, CheckCircle2, Sparkles, Truck, User, Store } from 'lucide-react';
 import { SlideToBuy } from './SlideToBuy';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface FastCheckoutDrawerProps {
   isOpen: boolean;
@@ -34,34 +34,15 @@ export function FastCheckoutDrawer({
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<'domicile' | 'retrait'>('domicile');
-  const [deliveryFee, setDeliveryFee] = useState(5000);
   const [isOrdered, setIsOrdered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Charger les frais de livraison depuis Firestore
-  useEffect(() => {
-    const loadDeliveryFee = async () => {
-      try {
-        const settingsSnap = await getDoc(doc(db, 'settings', 'general'));
-        if (settingsSnap.exists()) {
-          const data = settingsSnap.data();
-          if (typeof data.deliveryFee === 'number') {
-            setDeliveryFee(data.deliveryFee);
-          }
-        }
-      } catch (e) {
-        // Valeur par défaut conservée
-      }
-    };
-    if (isOpen) loadDeliveryFee();
-  }, [isOpen]);
 
   const currentVariant = variants?.find(v => v.storage === selectedStorage);
   const basePrice = currentVariant
     ? (currentVariant.promoPrice || currentVariant.price)
     : parseInt((price || '0').replace(/\D/g, ''), 10) || 0;
 
-  const shippingCost = deliveryMethod === 'domicile' ? deliveryFee : 0;
+  const shippingCost = 0;
   const totalPrice = basePrice + shippingCost;
 
   const displayPrice = basePrice.toLocaleString('fr-FR');
@@ -76,7 +57,7 @@ export function FastCheckoutDrawer({
 
     try {
       const deliveryLabel = deliveryMethod === 'domicile'
-        ? `Livraison à domicile (+${deliveryFee.toLocaleString('fr-FR')} CFA)`
+        ? 'Livraison à domicile (frais à confirmer)'
         : 'Retrait en boutique (Gratuit)';
 
       // Save order to Firestore
@@ -113,7 +94,7 @@ export function FastCheckoutDrawer({
         ? `\n- Adresse : ${address}`
         : '\n- Mode : Retrait en boutique';
 
-      const message = `Bonjour Khalil Apple ! Je souhaite commander :\n- Produit : ${productName}\n- Stockage : ${selectedStorage}\n- Prix produit : ${displayPrice} CFA\n- Livraison : ${deliveryMethod === 'domicile' ? `${deliveryFee.toLocaleString('fr-FR')} CFA` : 'Gratuit (retrait)'}\n- Total : ${displayTotal} CFA\n- Client : ${fullName}\n- Téléphone : ${phone}${adresseInfo}`;
+      const message = `Bonjour Khalil Apple ! Je souhaite commander :\n- Produit : ${productName}\n- Stockage : ${selectedStorage}\n- Prix produit : ${displayPrice} CFA\n- Livraison : ${deliveryMethod === 'domicile' ? 'Frais à confirmer avec le client' : 'Gratuit (retrait)'}\n- Total produit : ${displayTotal} CFA\n- Client : ${fullName}\n- Téléphone : ${phone}${adresseInfo}`;
       const targetNumber = whatsappNumber.replace(/\+/g, '');
       const whatsappUrl = `https://wa.me/${targetNumber}?text=${encodeURIComponent(message)}`;
 
@@ -244,7 +225,7 @@ export function FastCheckoutDrawer({
                     <Truck className="w-4 h-4" />
                     <span>Domicile</span>
                     <span className={`text-[10px] font-normal ${deliveryMethod === 'domicile' ? 'text-black/70' : 'text-zinc-500'}`}>
-                      +{deliveryFee.toLocaleString('fr-FR')} CFA
+                      Frais à confirmer
                     </span>
                   </button>
                   <button
@@ -320,7 +301,7 @@ export function FastCheckoutDrawer({
                 <div className="flex items-center justify-between text-xs text-zinc-400">
                   <span>Livraison</span>
                   <span className={`font-bold ${shippingCost === 0 ? 'text-emerald-400' : 'text-white'}`}>
-                    {shippingCost === 0 ? 'Gratuit' : `${shippingCost.toLocaleString('fr-FR')} CFA`}
+                    {deliveryMethod === 'domicile' ? 'À confirmer' : 'Gratuit'}
                   </span>
                 </div>
                 <div className="border-t border-white/10 pt-2 flex items-center justify-between">
